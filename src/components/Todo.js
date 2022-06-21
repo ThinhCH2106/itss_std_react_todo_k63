@@ -13,35 +13,48 @@ import Input from './Input';
 import Filter from './Filter';
 
 /* カスタムフック */
-import useStorage from '../hooks/storage';
+import useFirestore from '../hooks/useFireStore';
 
 /* ライブラリ */
 import {getKey} from "../lib/util";
 
 function Todo() {
-  const [items, putItems] = React.useState([
-      /* テストコード 開始 */
-    { key: getKey(), text: '日本語の宿題', done: false },
-    { key: getKey(), text: 'reactを勉強する', done: false },
-    { key: getKey(), text: '明日の準備をする', done: false },
-    /* テストコード 終了 */
-  ]);
+    const [items, addItem, updateItem, clearItems] = useFirestore();
+
+    const [filter, setFilter] = React.useState("ALL");
+
+    const handleCheck = (checked) => {
+        updateItem(checked);
+    };
+
+    const handleAdd = (text) => {
+        addItem({ text, done: false });
+    };
+
+    const displayItems = items.filter((item) => {
+        if (filter === "ALL") return true;
+        if (filter === "TODO") return !item.done;
+        if (filter === "DONE") return item.done;
+        return null;
+    });
+    const handleFilterChange = (value) => setFilter(value);
+
+  
 
   return (
-    <div className="panel">
-      <div className="panel-heading">
-        ITSS ToDoアプリ
-      </div>
-      {items.map(item => (
-        <label className="panel-block">
-            <input type="checkbox" />
-            {item.text}
-        </label>
-      ))}
-      <div className="panel-block">
-        {items.length} items
-      </div>
-    </div>
+        <div className="panel">
+            <div className="panel-heading">ITSS ToDoアプリ</div>
+            <Input onAdd={handleAdd} />
+            <Filter onChange={handleFilterChange} value={filter} />
+
+            {displayItems.map((item) => (
+                <TodoItem key={item.id} item={item} onCheck={handleCheck} />
+            ))}
+            <div className="panel-block">{displayItems.length} items</div>
+            <div className="panel-block">
+                
+            </div>
+        </div>
   );
 }
 
